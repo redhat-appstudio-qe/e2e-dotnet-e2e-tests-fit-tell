@@ -1,0 +1,50 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  creationTimestamp: null
+  name: dotnet-component
+  namespace: e2e-tests
+spec:
+  params:
+  - name: git-revision
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1beta1
+    kind: PipelineRun
+    metadata:
+      annotations:
+        build.appstudio.openshift.io/application: e2e-dotnet
+        build.appstudio.openshift.io/build: "true"
+        build.appstudio.openshift.io/component: dotnet-component
+        build.appstudio.openshift.io/type: build
+        build.appstudio.openshift.io/version: "0.1"
+        pipelines.appstudio.openshift.io/type: build
+      creationTimestamp: null
+      generateName: dotnet-component-
+      labels:
+        build.appstudio.openshift.io/application: e2e-dotnet
+        build.appstudio.openshift.io/build: "true"
+        build.appstudio.openshift.io/component: dotnet-component
+        build.appstudio.openshift.io/type: build
+        build.appstudio.openshift.io/version: "0.1"
+        pipelines.appstudio.openshift.io/type: build
+      namespace: e2e-tests
+    spec:
+      params:
+      - name: git-url
+        value: https://github.com/redhat-appstudio-qe/devfile-sample-dotnet60-basic
+      - name: output-image
+        value: quay.io/redhat-appstudio-qe/test-images:34fa352433f6400a929c4ebc85d61c43-$(tt.params.git-revision)
+      - name: dockerfile
+        value: docker/Dockerfile
+      - name: path-context
+        value: .
+      pipelineRef:
+        bundle: quay.io/redhat-appstudio/build-templates-bundle:ad4c34b71d468a991450b0091cd96765471ed82d
+        name: docker-build
+      workspaces:
+      - name: workspace
+        persistentVolumeClaim:
+          claimName: appstudio
+        subPath: dotnet-component/$(tt.params.git-revision)
+    status: {}
+status: {}
